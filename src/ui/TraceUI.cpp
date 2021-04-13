@@ -97,7 +97,7 @@ void TraceUI::cb_render(Fl_Widget* o, void* v)
 	char buffer[256];
 
 	TraceUI* pUI=((TraceUI*)(o->user_data()));
-	
+	pUI->raytracer->maxDepth = pUI->m_nDepth;
 	if (pUI->raytracer->sceneLoaded()) {
 		int width=pUI->getSize();
 		int	height = (int)(width / pUI->raytracer->aspectRatio() + 0.5);

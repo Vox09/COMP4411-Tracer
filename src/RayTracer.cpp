@@ -26,7 +26,9 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 	const vec3f& thresh, int depth )
 {
 	isect i;
-
+	if (depth > maxDepth) {
+		return vec3f(0, 0, 0);
+	}
 	if( scene->intersect( r, i ) ) {
 		// YOUR CODE HERE
 
@@ -68,7 +70,7 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 			intensityT = traceRay(scene, rayT, thresh, depth + 1);
 		}
 		return intensity + vec3f(m.kr[0] * intensityR[0], m.kr[1] * intensityR[1], m.kr[2] * intensityR[2])
-						 + vec3f(m.kt[0] * intensityT[0], m.kt[1] * intensityT[1],m. kt[2] * intensityT[2]);
+						 + vec3f(m.kt[0] * intensityT[0], m.kt[1] * intensityT[1], m.kt[2] * intensityT[2]);
 	
 	} else {
 		// No intersection.  This ray travels to infinity, so we color
@@ -84,6 +86,7 @@ RayTracer::RayTracer()
 	buffer = NULL;
 	buffer_width = buffer_height = 256;
 	scene = NULL;
+	maxDepth = 0;
 
 	m_bSceneLoaded = false;
 }
