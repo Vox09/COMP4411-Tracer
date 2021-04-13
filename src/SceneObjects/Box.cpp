@@ -49,27 +49,27 @@ bool Box::intersectLocal( const ray& r, isect& i ) const
 		i.obj = this;
 		i.t = finalt;
 		vec3f point = r.at(finalt);
-		if (point[0] == 0.5) {
+		if (abs(point[0] - 0.5) < RAY_EPSILON) {
 			vec3f temp(1, 0, 0);
 			i.N = temp;
 		}
-		else if (point[0] == -0.5) {
+		else if (abs(point[0] + 0.5) < RAY_EPSILON) {
 			vec3f temp(-1, 0, 0);
 			i.N = temp;
 		}
-		else if (point[1] == 0.5) {
+		else if (abs(point[1] - 0.5) < RAY_EPSILON) {
 			vec3f temp(0, 1, 0);
 			i.N = temp;
 		}
-		else if (point[1] == -0.5) {
+		else if (abs(point[1] + 0.5) < RAY_EPSILON) {
 			vec3f temp(0, -1, 0);
 			i.N = temp;
 		}
-		else if (point[2] == 0.5) {
+		else if (abs(point[2] - 0.5) < RAY_EPSILON) {
 			vec3f temp(0, 0, 1);
 			i.N = temp;
 		}
-		else if (point[2] == -0.5) {
+		else if (abs(point[2] + 0.5) < RAY_EPSILON) {
 			vec3f temp(0, 0, -1);
 			i.N = temp;
 		}
