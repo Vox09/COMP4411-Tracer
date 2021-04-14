@@ -43,34 +43,38 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 
 		const Material& m = i.getMaterial();
 		// Phong model
-		vec3f intensity = m.shade(scene, r, i);
+		vec3f iPhong = m.shade(scene, r, i);
 		// reflection
-		vec3f l = r.getDirection();
+		vec3f dEye = r.getDirection();
 		vec3f n = i.N;
-		ray rayR(r.at(i.t), l - 2 * (l.dot(n)) * n);
-		vec3f intensityR = traceRay(scene, rayR, thresh, depth + 1);
+		vec3f p = r.at(i.t);
+		ray rayL(p, dEye - 2 * (dEye.dot(n)) * n);
+		vec3f iReflect = traceRay(scene, rayL, thresh, depth + 1);
 		// refraction
-		vec3f intensityT;
-		double n_i, n_t;
-		// air to model
-		if (l.dot(n) > 0) {
-			n_i = 1.0;
-			n_t = m.index;
+		vec3f iRefract;
+		if (m.index != 1.0) {
+			double n_i, n_t;
+			// air to model
+			if (dEye.dot(n) < 0) {
+				n_i = 1.0;
+				n_t = m.index;
+			}
+			// model to air
+			else {
+				n_i = m.index;
+				n_t = 1.0;
+			}
+			vec3f dInL = -rayL.getDirection().normalize();
+			double rfi = n_i / n_t;
+			double cos_theta_i = -n.dot(dInL);
+			double cos_theta_t_sqad = 1 - (rfi * rfi ) * (1 - cos_theta_i * cos_theta_i);
+			if (cos_theta_t_sqad > 0) {
+				ray rayT(p, (rfi * cos_theta_i - sqrt(cos_theta_t_sqad)) * n + rfi * dInL);
+				iRefract= traceRay(scene, rayT, thresh, depth + 1);
+			}
 		}
-		// model to air
-		else {
-			n_i = m.index;
-			n_t = 1.0;
-		}
-		double rfi = n_i / n_t;
-		double cos_theta_i = n.dot(-l);
-		double cos_theta_t_sqad = 1 - (rfi * rfi ) * (1 - cos_theta_i * cos_theta_i);
-		if (cos_theta_t_sqad > 0) {
-			ray rayT(r.at(i.t), (rfi * cos_theta_i - sqrt(cos_theta_t_sqad)) * n + rfi * l);
-			intensityT = traceRay(scene, rayT, thresh, depth + 1);
-		}
-		return intensity + vec3f(m.kr[0] * intensityR[0], m.kr[1] * intensityR[1], m.kr[2] * intensityR[2])
-						 + vec3f(m.kt[0] * intensityT[0], m.kt[1] * intensityT[1], m.kt[2] * intensityT[2]);
+		return iPhong + vec3f(m.kr[0] * iReflect[0], m.kr[1] * iReflect[1], m.kr[2] * iReflect[2]) 
+					  + vec3f(m.kt[0] * iRefract[0], m.kt[1] * iRefract[1], m.kt[2] * iRefract[2]);
 	
 	} else {
 		// No intersection.  This ray travels to infinity, so we color
