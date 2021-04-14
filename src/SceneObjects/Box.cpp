@@ -30,25 +30,38 @@ bool Box::intersectLocal( const ray& r, isect& i ) const
 			}
 		}
 	}
-	double finalt = 0;
+	double t1 = 0;
+	double t2 = 0;
 	if (pointst.empty()) {
 		return false;
 	}
 	else {
-		finalt = *(pointst.begin());
+		t2 = *(pointst.begin());
 		for (list<double>::iterator iter = pointst.begin(); iter != pointst.end(); iter++) {
-			if ((*iter) < finalt)
-				finalt = *iter;
+			if ((*iter) <= t2)
+				t1 = *iter;
+			else {
+				t1 = t2;
+				t2 = *iter;
+			}
 		}
 	}
 
-	if (finalt <= RAY_EPSILON) {
+	if (t2 <= RAY_EPSILON) {
 		return false;
 	}
 	else {
-		i.obj = this;
-		i.t = finalt;
-		vec3f point = r.at(finalt);
+		vec3f point;
+		if (t1 > RAY_EPSILON) {
+			i.obj = this;
+			i.t = t1;
+			point = r.at(t1);
+		}
+		else {
+			i.obj = this;
+			i.t = t2;
+			point = r.at(t2);
+		}
 		if (abs(point[0] - 0.5) < RAY_EPSILON) {
 			vec3f temp(1, 0, 0);
 			i.N = temp;

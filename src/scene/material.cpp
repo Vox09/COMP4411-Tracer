@@ -32,13 +32,13 @@ vec3f Material::shade( Scene *scene, const ray& r, const isect& i ) const
 		int id = (*iter)->id();
 		vec3f intensity = (*iter)->getColor(P);
 		if (id != 2) {
-			vec3f Idiffuse = vec3f(kd[0] * intensity[0], kd[1] * intensity[1], kd[2] * intensity[2]);
+			vec3f Idiffuse = prod(kd, intensity);// vec3f(kd[0] * intensity[0], kd[1] * intensity[1], kd[2] * intensity[2]);
 			double nl = i.N.dot((*iter)->getDirection(P).normalize());
 			if (nl < 0)
 				nl = 0;
 			Idiffuse *= nl;
 			
-			vec3f Ispecular = vec3f(ks[0] * intensity[0], ks[1] * intensity[1], ks[2] * intensity[2]);
+			vec3f Ispecular = prod(ks, intensity);// vec3f(ks[0] * intensity[0], ks[1] * intensity[1], ks[2] * intensity[2]);
 			vec3f Ldir = ((*iter)->getDirection(P)).normalize();
 			double LN = Ldir.dot(i.N) * 2;
 			vec3f LNN = i.N;
@@ -53,7 +53,7 @@ vec3f Material::shade( Scene *scene, const ray& r, const isect& i ) const
 
 			vec3f disatte = (Idiffuse + Ispecular) * ((*iter)->distanceAttenuation(P));
 			vec3f shaatte = (*iter)->shadowAttenuation(P);
-			Iphong = Iphong + vec3f(disatte[0] * shaatte[0], disatte[1] * shaatte[1], disatte[2] * shaatte[2]);
+			Iphong = Iphong + prod(disatte, shaatte);
 		}
 	}
 	return Iphong;
