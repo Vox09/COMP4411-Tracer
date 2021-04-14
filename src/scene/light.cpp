@@ -74,7 +74,18 @@ vec3f PointLight::shadowAttenuation(const vec3f& P) const
 {
     // YOUR CODE HERE:
     // You should implement shadow-handling code here.
-    return vec3f(1,1,1);
+	ray r(P, getDirection(P));
+	isect i;
+	vec3f rst(1, 1, 1);
+	while (scene->intersect(r, i)) {
+		rst[0] *= i.getMaterial().kt[0];
+		rst[1] *= i.getMaterial().kt[1];
+		rst[2] *= i.getMaterial().kt[2];
+		if (rst == vec3f(0, 0, 0))
+			return rst;
+		r = ray(r.at(i.t), r.getDirection());
+	}
+    return rst;
 }
 
 double AmbientLight::distanceAttenuation(const vec3f& P) const
