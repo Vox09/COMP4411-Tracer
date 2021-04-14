@@ -26,7 +26,9 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 	const vec3f& thresh, int depth )
 {
 	isect i;
-
+	if (depth > maxDepth) {
+		return vec3f(0, 0, 0);
+	}
 	if( scene->intersect( r, i ) ) {
 		// YOUR CODE HERE
 
@@ -40,7 +42,35 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 		// rays.
 
 		const Material& m = i.getMaterial();
-		return m.shade(scene, r, i);
+		// Phong model
+		vec3f intensity = m.shade(scene, r, i);
+		// reflection
+		vec3f l = r.getDirection();
+		vec3f n = i.N;
+		ray rayR(r.at(i.t), l - 2 * (l.dot(n)) * n);
+		vec3f intensityR = traceRay(scene, rayR, thresh, depth + 1);
+		// refraction
+		vec3f intensityT;
+		double n_i, n_t;
+		// air to model
+		if (l.dot(n) > 0) {
+			n_i = 1.0;
+			n_t = m.index;
+		}
+		// model to air
+		else {
+			n_i = m.index;
+			n_t = 1.0;
+		}
+		double rfi = n_i / n_t;
+		double cos_theta_i = n.dot(-l);
+		double cos_theta_t_sqad = 1 - (rfi * rfi ) * (1 - cos_theta_i * cos_theta_i);
+		if (cos_theta_t_sqad > 0) {
+			ray rayT(r.at(i.t), (rfi * cos_theta_i - sqrt(cos_theta_t_sqad)) * n + rfi * l);
+			intensityT = traceRay(scene, rayT, thresh, depth + 1);
+		}
+		return intensity + vec3f(m.kr[0] * intensityR[0], m.kr[1] * intensityR[1], m.kr[2] * intensityR[2])
+						 + vec3f(m.kt[0] * intensityT[0], m.kt[1] * intensityT[1], m.kt[2] * intensityT[2]);
 	
 	} else {
 		// No intersection.  This ray travels to infinity, so we color
@@ -56,6 +86,7 @@ RayTracer::RayTracer()
 	buffer = NULL;
 	buffer_width = buffer_height = 256;
 	scene = NULL;
+	maxDepth = 0;
 
 	m_bSceneLoaded = false;
 }
