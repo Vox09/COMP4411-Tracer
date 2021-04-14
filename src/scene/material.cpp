@@ -51,7 +51,9 @@ vec3f Material::shade( Scene *scene, const ray& r, const isect& i ) const
 			double VRns = pow(VR, ns);
 			Ispecular *= VRns;
 
-			Iphong = Iphong + (Idiffuse + Ispecular)*((*iter)->distanceAttenuation(P))*((*iter)->shadowAttenuation(P));
+			vec3f disatte = (Idiffuse + Ispecular) * ((*iter)->distanceAttenuation(P));
+			vec3f shaatte = (*iter)->shadowAttenuation(P);
+			Iphong = Iphong + vec3f(disatte[0] * shaatte[0], disatte[1] * shaatte[1], disatte[2] * shaatte[2]);
 		}
 	}
 	return Iphong;
