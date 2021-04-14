@@ -38,7 +38,10 @@ double PointLight::distanceAttenuation( const vec3f& P ) const
 	double b = linear_attenuation_coeff;
 	double c = quadratic_attenuation_coeff;
 	double d = sqrt((position - P).dot(position - P));
-	double f = 1 / (a + b * d + c * d * d);
+	double fbottom = a + b * d + c * d * d;
+	if (fbottom == 0)
+		return 1.0;
+	double f = 1 / fbottom;
 	if (f > 1)
 		f = 1.0;
 	return f;

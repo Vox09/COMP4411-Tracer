@@ -50,9 +50,9 @@ public:
 
 protected:
 	vec3f position;
-	double constant_attenuation_coeff;
-	double linear_attenuation_coeff;
-	double quadratic_attenuation_coeff;
+	double constant_attenuation_coeff = 0;
+	double linear_attenuation_coeff = 0;
+	double quadratic_attenuation_coeff = 0;
 };
 
 class AmbientLight
