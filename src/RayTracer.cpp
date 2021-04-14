@@ -45,33 +45,32 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 		// Phong model
 		vec3f iPhong = m.shade(scene, r, i);
 		// reflection
-		vec3f dEye = r.getDirection();
+		vec3f dEye = r.getDirection().normalize();
 		vec3f n = i.N;
 		vec3f p = r.at(i.t);
 		ray rayL(p, dEye - 2 * (dEye.dot(n)) * n);
 		vec3f iReflect = traceRay(scene, rayL, thresh, depth + 1);
 		// refraction
 		vec3f iRefract;
-		if (m.index != 1.0) {
-			double n_i, n_t;
-			// air to model
-			if (dEye.dot(n) < 0) {
-				n_i = 1.0;
-				n_t = m.index;
-			}
-			// model to air
-			else {
-				n_i = m.index;
-				n_t = 1.0;
-			}
-			vec3f dInL = -rayL.getDirection().normalize();
-			double rfi = n_i / n_t;
-			double cos_theta_i = -n.dot(dInL);
-			double cos_theta_t_sqad = 1 - (rfi * rfi ) * (1 - cos_theta_i * cos_theta_i);
-			if (cos_theta_t_sqad > 0) {
-				ray rayT(p, (rfi * cos_theta_i - sqrt(cos_theta_t_sqad)) * n + rfi * dInL);
-				iRefract= traceRay(scene, rayT, thresh, depth + 1);
-			}
+		double n_i, n_t;
+		// air to model
+		if (dEye.dot(n) < 0) {
+			n_i = 1.0;
+			n_t = m.index;
+		}
+		// model to air
+		else {
+			n_i = m.index;
+			n_t = 1.0;
+		}
+		vec3f dInL = -rayL.getDirection().normalize();
+		double rfi = n_i / n_t;
+		double cos_theta_i = -n.dot(dInL);
+		double cos_theta_t_sqad = 1 - (rfi * rfi ) * (1 - cos_theta_i * cos_theta_i);
+		double min_cos_theta_i = sqrt(1 - 1 / (rfi * rfi));
+		if (cos_theta_i > min_cos_theta_i) {
+			ray rayT(p, (rfi * cos_theta_i - sqrt(cos_theta_t_sqad)) * n + rfi * (-dEye));
+			iRefract= traceRay(scene, rayT, thresh, depth + 1);
 		}
 		return iPhong + vec3f(m.kr[0] * iReflect[0], m.kr[1] * iReflect[1], m.kr[2] * iReflect[2]) 
 					  + vec3f(m.kt[0] * iRefract[0], m.kt[1] * iRefract[1], m.kt[2] * iRefract[2]);
