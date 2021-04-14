@@ -531,6 +531,16 @@ static void processObject( Obj *obj, Scene *scene, mmap& materials )
 
 		scene->add( new PointLight( scene, 
 			tupleToVec( getField( child, "position" ) ),
+			getField( child, "constant_attenuation_coeff" ) -> getScalar(),
+			getField( child, "linear_attenuation_coeff" ) -> getScalar(),
+			getField( child, "quadratic_attenuation_coeff" ) -> getScalar(),
+			tupleToVec( getColorField( child ) ) ) );
+	} else if( name == "ambient_light") {
+		if (child == NULL) {
+			throw ParseError("No info for ambient_light");
+		}
+
+		scene->add( new AmbientLight( scene,
 			tupleToVec( getColorField( child ) ) ) );
 	} else if( 	name == "sphere" ||
 				name == "box" ||
